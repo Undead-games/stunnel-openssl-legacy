@@ -2,6 +2,8 @@ FROM debian:bullseye-slim AS build
 
 ARG STUNNEL_VERSION=5.78
 
+# TODO: Build args for stunnel and openssl
+
 WORKDIR /app
 
 COPY conf/arm-linux-gnueabihf.conf /etc/ld.so.conf.d/arm-linux-gnueabihf.conf
