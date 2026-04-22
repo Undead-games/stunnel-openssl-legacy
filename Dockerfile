@@ -1,23 +1,23 @@
 FROM alpine:3.23.3 AS build
 
 ARG STUNNEL_VERSION=5.78
+ARG OPENSSL_VERSION=1.0.2u
 
 # TODO: Build args for stunnel and openssl
 
 WORKDIR /app
-
-COPY deps ./deps/
 
 RUN apk add --no-cache \
         build-base \
         wget \
         ca-certificates \
         perl \
+    && export OPENSSL_GITHUB_RELEASE=OpenSSL_${OPENSSL_VERSION//./_} \
     && mkdir -p /app/dist \
     # Setting up openssl
-    && tar xzvf /app/deps/openssl-1.0.2q.tar.gz -C /app/dist/ \
-    && cd /app/dist/openssl-1.0.2q/ \
-    && ./config -fPIC no-shared --prefix=/opt/openssl-1.0.2 \
+    && wget -qO - https://github.com/openssl/openssl/releases/download/${OPENSSL_GITHUB_RELEASE}/openssl-${OPENSSL_VERSION}.tar.gz | tar xzvf - -C /app/dist/ \
+    && cd /app/dist/openssl-${OPENSSL_VERSION}/ \
+    && ./config -fPIC no-shared --prefix=/opt/openssl-${OPENSSL_VERSION} \
         --openssldir=/etc/ssl \
         enable-weak-ssl-ciphers \
         enable-ssl3 \
@@ -36,7 +36,7 @@ RUN apk add --no-cache \
         --disable-silent-rules \
         --disable-shared \
         --prefix=/opt/stunnel \
-        --with-ssl=/opt/openssl-1.0.2 \
+        --with-ssl=/opt/openssl-${OPENSSL_VERSION} \
     && make LDFLAGS="-all-static" \
     && make install \
     && cd /app \
